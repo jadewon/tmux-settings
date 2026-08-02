@@ -1,14 +1,14 @@
 # tmux-settings
 
-Working base for Jade's tmux + Ghostty terminal environment. **Most of the files being edited live outside this directory**, mostly in the home directory, and most of them are not under version control. Read the project memory (`project_tmux_workspace`, `tmux_ghostty_env`, `tmux_claude_restore`, `tmux_claude_usage_ccc`) before changing anything here — those are Claude Code project-memory files under `~/.claude/projects/`, not files in this repo.
+Working base for Jade's tmux + Ghostty terminal environment. **Several of the files being edited live outside this directory**, in the home directory, and some of them are not under version control. Read the project memory (`project_tmux_workspace`, `tmux_ghostty_env`, `tmux_claude_restore`, `tmux_claude_usage_ccc`) before changing anything here — those are Claude Code project-memory files under `~/.claude/projects/`, not files in this repo.
 
-`~/.tmux.conf` and `~/.config/ghostty/config` are not in this repo either, so `tmux_setup_history` remains their only change history.
+`~/.config/ghostty/config` is still not in this repo, so `tmux_setup_history` remains its only change history.
 
 ## Where the real files are
 
 | Path | Versioned? | What |
 |---|---|---|
-| `~/.tmux.conf` | no | tmux config; heavily commented — read the comments before editing, several settings encode measured findings |
+| `tmux.conf` | **yes** (this repo) | the real tmux config; `~/.tmux.conf` is a symlink to it. Heavily commented — read the comments before editing, several settings encode measured findings. `status-interval` sits *after* the TPM line on purpose (see its comment) |
 | `~/.config/ghostty/config` | no | Ghostty as a tmux-only host; every native shortcut remapped to `text:\x01…` (tmux prefix) |
 | `scripts/tmux-{ram,weekday,resurrect-rewrite}.sh` | **yes** (this repo) | moved out of `~/.claude/hooks/` on 2026-08-02; symlinked back into it |
 | `~/Workspaces/scripts/shell/*.sh` | **yes** (git) | `update-claude-usage.sh`, `tmux-claude-usage.sh`, `tmux-claude-window-status.sh`, `tmux-merge-window.sh`, `claude-code-change.sh` — also symlinked into `~/.claude/hooks/` |
@@ -34,7 +34,7 @@ Status-bar work is verified by reading the cache/log, not by asking the user wha
 
 ## Rules for this directory
 
-- **Log every change** to the `tmux_setup_history` memory file, dated. It is the only history `~/.tmux.conf` and the Ghostty config have.
-- **Never lower `status-interval`** back toward 1 — see the comment at that line; it was raised to 15 after measuring 425 process spawns/sec.
+- **Log every change** to the `tmux_setup_history` memory file, dated. It is the only history the Ghostty config has at all, and for `tmux.conf` it carries the *reasoning* git history does not — why a setting has the value it does, and what was measured to get there.
+- **Never lower `status-interval`** back toward 1 — see the comment at that line; it was raised to 15 after measuring 425 process spawns/sec. Keep it below the TPM line: tmux's own default is 15, so setting it anywhere above there lets `tmux-sensible` mistake it for untouched and reset it to 5.
 - **Never apply a colour, icon or glyph choice unilaterally.** Print candidates with `echo`/ANSI so they can be compared in the user's own font, then let the user pick. Only offer glyphs whose rendering you verified.
 - Anything touching credentials must run under launchd, not cron — cron has no access to the macOS GUI Keychain.

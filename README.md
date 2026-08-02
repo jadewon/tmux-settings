@@ -1,8 +1,15 @@
 # tmux-settings
 
-Helper scripts for a tmux + [Ghostty](https://ghostty.org) + [Claude Code](https://claude.com/claude-code) setup on macOS: two status-bar readouts and a `tmux-resurrect` hook that brings every pane back on its original Claude Code conversation after a reboot.
+A tmux config for a [Ghostty](https://ghostty.org) + [Claude Code](https://claude.com/claude-code) setup on macOS, plus three helper scripts: two status-bar readouts and a `tmux-resurrect` hook that brings every pane back on its original Claude Code conversation after a reboot.
 
-This repo holds the scripts only. `~/.tmux.conf` and `~/.config/ghostty/config` are not included.
+`~/.config/ghostty/config` is not included — that half of the setup (every native Ghostty shortcut remapped to a tmux command, because `Ctrl` does not reach the app while the Korean IME is active) lives outside this repo.
+
+## Config
+
+`tmux.conf` is the whole config, commented throughout. Two comments are worth reading before you edit anything:
+
+- **`status-interval` is set at the very bottom, after the TPM line, and that placement is load-bearing.** tmux's own default for it is `15`, so setting it to `15` higher up in the file looks "untouched" to `tmux-sensible`, which then silently overwrites it with `5`.
+- **`prefix` is `C-a`, driven as `Cmd+a` from the terminal.** `Ctrl+a`/`Ctrl+b` do not reach the application while the Korean IME is active; `Cmd` passes through.
 
 ## Scripts
 
@@ -22,7 +29,19 @@ This repo holds the scripts only. `~/.tmux.conf` and `~/.config/ghostty/config` 
 
 ## Install
 
-Clone anywhere and point `~/.tmux.conf` at the scripts:
+The config calls the scripts as `~/.claude/hooks/<name>.sh`, so symlink both layers. Move any existing `~/.tmux.conf` aside first — the `ln` below deliberately has no `-f` so it refuses rather than overwriting it.
+
+```sh
+git clone https://github.com/jadewon/tmux-settings.git
+ln -s "$PWD/tmux-settings/tmux.conf" ~/.tmux.conf
+for f in tmux-ram tmux-weekday tmux-resurrect-rewrite; do
+  ln -s "$PWD/tmux-settings/scripts/$f.sh" ~/.claude/hooks/$f.sh
+done
+```
+
+Then `prefix + r` (or `tmux source-file ~/.tmux.conf`).
+
+To take only the scripts, point your own config straight at them instead:
 
 ```tmux
 set -g status-right "… RAM:#(/path/to/tmux-settings/scripts/tmux-ram.sh) | %H:%M:%S #(/path/to/tmux-settings/scripts/tmux-weekday.sh)"
@@ -30,8 +49,6 @@ set -g status-right "… RAM:#(/path/to/tmux-settings/scripts/tmux-ram.sh) | %H:
 set -g @resurrect-processes '"~claude->claude *"'
 set -g @resurrect-hook-post-save-all '/path/to/tmux-settings/scripts/tmux-resurrect-rewrite.sh'
 ```
-
-Then `prefix + r` (or `tmux source-file ~/.tmux.conf`).
 
 Status-bar scripts are re-run on every redraw, so keep `status-interval` high — at `1` this setup measured 425 process spawns/sec against 196/sec at `15`.
 
